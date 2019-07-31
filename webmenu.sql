@@ -3,13 +3,15 @@
 # Create tables
 CREATE TABLE IF NOT EXISTS Ristorante
 (
-    idRistorante INT NOT NULL AUTO_INCREMENT,
-    Nome VARCHAR(30) NOT NULL,
-    Indirizzo VARCHAR(30) NOT NULL,
-    Città VARCHAR(30) NOT NULL,
-    scadenzaAbbonamento DATE NOT NULL,
-    PRIMARY KEY(idRistorante),
-    INDEX(idRistorante)
+    idRistorante INT NOT NULL AUTO_INCREMENT ,
+    Nome VARCHAR (30) NOT NULL ,
+    Indirizzo VARCHAR (30) NOT NULL ,
+    Citta VARCHAR (30) NOT NULL ,
+    PartitaIVA VARCHAR (11) NOT NULL,
+    DataIscrizione DATE NOT NULL,
+    scadenzaAbbonamento DATE NOT NULL ,
+    PRIMARY KEY ( idRistorante ) ,
+    INDEX ( idRistorante )
 );
 
 CREATE TABLE IF NOT EXISTS Menu
@@ -74,16 +76,16 @@ ALTER TABLE Ingredienti
     
 
 # Add values on Ristorante
-insert into Ristorante (Nome, Indirizzo, Città, scadenzaAbbonamento) values ("Il Paradiso della Pizza", "Via delle Vie 121", "Ragusa", "2019-10-09");
-insert into Ristorante (Nome, Indirizzo, Città, scadenzaAbbonamento) values ("Trattoria da Peppe", "Via Cristoforo Colombo 5", "Milano", "2019-10-09");
-insert into Ristorante (Nome, Indirizzo, Città, scadenzaAbbonamento) values ("La barchetta", "Viale Andrea Doria 12", "Marina di Ragusa", "2019-12-11");
-insert into Ristorante (Nome, Indirizzo, Città, scadenzaAbbonamento) values ("Pizza in piazza", "Piazzale Michelangelo 1", "Roma", "2020-07-21");
-insert into Ristorante (Nome, Indirizzo, Città, scadenzaAbbonamento) values ("Pesce e Carne", "Via Risorgimento 3", "Pisa", "2019-01-11");
-insert into Ristorante (Nome, Indirizzo, Città, scadenzaAbbonamento) values ("Ristocarne", "Corso Verdi", "Catania", "2020-05-07");
-insert into Ristorante (Nome, Indirizzo, Città, scadenzaAbbonamento) values ("Trattoria da Gino", "Via Giulio Cesare 301", "Milano", "2020-01-30");
-insert into Ristorante (Nome, Indirizzo, Città, scadenzaAbbonamento) values ("Pesce e kebab", "Vicolo Corto 12", "Monopoli", "2019-11-06");
-insert into Ristorante (Nome, Indirizzo, Città, scadenzaAbbonamento) values ("La lasagna", "Vicolo Stretto 2", "Monopoli", "2019-09-20");
-insert into Ristorante (Nome, Indirizzo, Città, scadenzaAbbonamento) values ("La pizza veloce", "Via Roma 30", "Marina di Ragusa", "2019-12-18");
+insert into Ristorante (Nome, Indirizzo, Citta, PartitaIVA, DataIscrizione, scadenzaAbbonamento) values ("Il Paradiso della Pizza", "Via delle Vie 121", "Ragusa", "AAABBBCCCDD", "2019-01-01", "2019-10-09");
+insert into Ristorante (Nome, Indirizzo, Citta, PartitaIVA, DataIscrizione, scadenzaAbbonamento) values ("Trattoria da Peppe", "Via Cristoforo Colombo 5", "Milano", "1122233344", "2019-01-01", "2019-10-09");
+insert into Ristorante (Nome, Indirizzo, Citta, PartitaIVA, DataIscrizione, scadenzaAbbonamento) values ("La barchetta", "Viale Andrea Doria 12", "Marina di Ragusa", "A1234567890", "2019-01-01", "2019-12-11");
+insert into Ristorante (Nome, Indirizzo, Citta, PartitaIVA, DataIscrizione, scadenzaAbbonamento) values ("Pizza in piazza", "Piazzale Michelangelo 1", "Roma", "0123456789C", "2019-01-01", "2020-07-21");
+insert into Ristorante (Nome, Indirizzo, Citta, PartitaIVA, DataIscrizione, scadenzaAbbonamento) values ("Pesce e Carne", "Via Risorgimento 3", "Pisa", "ABCDEFGHI12", "2019-01-01", "2019-01-11");
+insert into Ristorante (Nome, Indirizzo, Citta, PartitaIVA, DataIscrizione, scadenzaAbbonamento) values ("Ristocarne", "Corso Verdi", "Catania", "ABCDEFGHI13", "2019-01-01", "2020-05-07");
+insert into Ristorante (Nome, Indirizzo, Citta, PartitaIVA, DataIscrizione, scadenzaAbbonamento) values ("Trattoria da Gino", "Via Giulio Cesare 301", "Milano", "ABCDEFGHI14", "2019-01-01", "2020-01-30");
+insert into Ristorante (Nome, Indirizzo, Citta, PartitaIVA, DataIscrizione, scadenzaAbbonamento) values ("Pesce e kebab", "Vicolo Corto 12", "Monopoli", "ABCDEFGHI15", "2019-01-01", "2019-11-06");
+insert into Ristorante (Nome, Indirizzo, Citta, PartitaIVA, DataIscrizione, scadenzaAbbonamento) values ("La lasagna", "Vicolo Stretto 2", "Monopoli", "ABCDEFGHI16", "2019-01-01", "2019-09-20");
+insert into Ristorante (Nome, Indirizzo, Citta, PartitaIVA, DataIscrizione, scadenzaAbbonamento) values ("La pizza veloce", "Via Roma 30", "Marina di Ragusa", "ABCDEFGHI17", "2019-01-01", "2019-12-18");
 
 
 #Add values on Menu
@@ -237,11 +239,42 @@ INSERT INTO Ingredienti (idIngrediente, idPiatto) VALUES (3, 19);
 INSERT INTO Ingredienti (idIngrediente, idPiatto) VALUES (28, 19);
 
 
+DELIMITER //
+DROP TRIGGER IF EXISTS ingrediente_presente //
+CREATE TRIGGER ingrediente_presente 
+BEFORE INSERT ON Ingredienti
+FOR EACH ROW
+BEGIN
+IF ( EXISTS ( SELECT * FROM Ingredienti i WHERE New.idIngrediente = i.IdIngrediente ) )
+THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "Ingrediente gia presente";
+END IF ;
+END ;
+//
 
+DELIMITER //
+DROP TRIGGER IF EXISTS piatto_presente //
+CREATE TRIGGER piatto_presente
+BEFORE INSERT ON Piatto
+FOR EACH ROW
+BEGIN
+IF ( EXISTS ( SELECT * FROM Piatto p WHERE New.idMenu = p.idMenu
+))
+THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = " Piatto gia presente " ;
+END IF ;
+END ;
+//
 
-
-
-
+DELIMITER //
+DROP TRIGGER IF EXISTS data_expired //
+CREATE TRIGGER data_expired
+BEFORE UPDATE ON Ristorante
+FOR EACH ROW
+BEGIN
+IF (( SELECT scadenzaAbbonamento FROM Ristorante r WHERE New.idRistorante = r.idRistorante ) < CURRENT_TIMESTAMP )
+THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = " Inserire una data valida " ;
+END IF ;
+END;
+//
 
 
 
